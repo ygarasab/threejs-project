@@ -4,6 +4,7 @@ import {FlyControls} from "three/examples/jsm/controls/FlyControls";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
 import * as dat from 'dat.gui'
+import RainDrop from './rain-drop.js'
 
 let cloud
 let cloud2
@@ -11,123 +12,50 @@ let cloud2
 
 const textureLoader = new THREE.TextureLoader()
 
-const normalTexture = textureLoader.load('/textures/NormalMap.png')
 
-// Debug
 const gui = new dat.GUI()
-
-// Canvas
 const canvas = document.querySelector('canvas.webgl')
-
-// Scene
 const scene = new THREE.Scene()
-
-// Objects
 const loader = new GLTFLoader();
 loader.load(
-    // resource URL
     'Cotoon_land.gltf',
-    // called when the resource is loaded
-    function ( gltf ) {
+     gltf => {
 
         const root = gltf.scene
-        root.traverse(function(model) {
+         root.traverse(model => {
             if(model.isMesh){
                 model.castShadow = true;
                 model.receiveShadow = true;
             }
         })
-        const scale =50
+        const scale = 50
         root.scale.set(scale, scale , scale)
         scene.add( root );
-
-        // gltf.animations; // Array<THREE.AnimationClip>
-        // gltf.scene; // THREE.Group
-        // gltf.scenes; // Array<THREE.Group>
-        // gltf.cameras; // Array<THREE.Camera>
-        // gltf.asset; // Object
-
     },
-    // called while loading is progressing
-    function ( xhr ) {
-
-        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
-    },
-    // called when loading has errors
-    function ( error ) {
-
-        console.log( 'An error happened' );
-
-    }
+    xhr => console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' ),
+    error => console.log( 'An error happened' )
 );
 
-//Nuvens
 loader.load(
-    // resource URL
     'scene_cloud.gltf',
-    // called when the resource is loaded
-    function ( gltf ) {
-
+    gltf => {
         const root = gltf.scene
-        root.traverse(function(model) {
+        root.traverse(model => {
             if(model.isMesh){
                 model.castShadow = true;
                 model.receiveShadow = true;
             }
         })
-
-        //console.log(cloud)
-        root.position.set(-8,20,-30)
+        root.position.set(-9,20,-30)
         const scale = 0.01
         root.rotateY(1.5708)
         root.scale.set(scale, scale , scale)
         cloud = root
         scene.add( root );
-        // gltf.animations; // Array<THREE.AnimationClip>
-        // gltf.scene; // THREE.Group
-        // gltf.scenes; // Array<THREE.Group>
-        // gltf.cameras; // Array<THREE.Camera>
-        // gltf.asset; // Object
-
     },
-    // called while loading is progressing
-    function ( xhr ) {
-
-        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
-    },
-    // called when loading has errors
-    function ( error ) {
-
-        console.log( 'An error happened' );
-
-    }
+    xhr =>  console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' ),
+    error => console.log( 'An error happened' )
 );
-// const geometry = new THREE.SphereGeometry(.5, 64, 64)
-// //Materials
-//
-// const material = new THREE.MeshPhongMaterial()
-//
-// material.color = new THREE.Color(0xff0000)
-//
-// //Mesh
-// const sphere = new THREE.Mesh(geometry,material)
-// sphere.castShadow = true;
-// sphere.receiveShadow = true;
-// scene.add(sphere)
-
-// Lights
-// const light = new THREE.DirectionalLight(0xfffff, 1)
-// light.position.set(0,12,0)
-// light.casShadow = true
-// scene.add(light)
-// const lightHelper = new THREE.PointLightHelper(light,.1)
-// scene.add(lightHelper)
-// gui.add(light.position, 'x').min(-6).max(6).step(0.01)
-// gui.add(light.position, 'y').min(0).max(24).step(0.01)
-// gui.add(light.position, 'z').min(-3).max(3).step(0.01)
-// gui.add(light, 'intensity').min(0).max(10).step(0.1)
 
 const pointLight = new THREE.PointLight(0xffffff, 2)
 pointLight.position.x = 20
@@ -170,16 +98,7 @@ window.addEventListener('resize', () =>
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 })
 
-class RainDrop()
-{
-    contructor()
-    {
-        this.geometry = new THREE.CylinderGeometry( 5, 5, 20, 32 );
-        this.material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
-        this.cylinder = new THREE.Mesh( this.geometry, this.material );
-        scene.add( cylinder );
-    }
-}
+let rds = []
 
 /**
  * Camera
@@ -221,13 +140,26 @@ const tick = () =>
 {
 
     const elapsedTime = clock.getElapsedTime()
+    
+    let rd = new RainDrop()
+    rds.push(rd)
+    scene.add(rd.obj)
+
+    for(let drop of rds)
+    {
+        drop.nextFrame()
+        if(drop.obj.position.y < 0)
+        {
+            scene.remove(drop.obj)
+            rds.shift()
+        }
+    }
 
     // Update objects
     //sphere.position.set(0, 3, 0)
 
     // Update Orbital Controls
     controls.update()
-
     // Render
     renderer.render(scene, camera)
 
