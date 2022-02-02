@@ -1,17 +1,15 @@
-# Three.js Starter
-Courtesy of Bruno Simon of https://threejs-journey.xyz/
+# Three.js Project
+Um Projeto em THREE.js desenvolvido para uma atividade de Computação Gráfica
 
 ## Setup
-Download [Node.js](https://nodejs.org/en/download/).
-Run this followed commands:
 
 ``` bash
-# Install dependencies (only the first time)
-npm install
+# Instala as dependências
+yarn
 
-# Run the local server at localhost:8080
-npm run dev
+# Inicia o servidor local em localhost:8080
+yarn dev
 
-# Build for production in the dist/ directory
-npm run build
+# Faz o build para produção
+yarn build
 ```
